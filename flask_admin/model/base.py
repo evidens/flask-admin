@@ -5,6 +5,7 @@ from flask.ext.admin.babel import gettext
 from flask.ext.admin.base import BaseView, expose
 from flask.ext.admin.tools import rec_getattr
 from flask.ext.admin.model import filters
+from flask.ext.admin.form import ActionForm
 
 
 class BaseModelView(BaseView):
@@ -219,6 +220,7 @@ class BaseModelView(BaseView):
         super(BaseModelView, self).__init__(name, category, endpoint, url)
 
         self.model = model
+        self._actions = None
 
         # Scaffolding
         self._refresh_cache()
@@ -624,12 +626,29 @@ class BaseModelView(BaseView):
 
         return url_for(view, **kwargs)
 
+    def _call_action(self, action, id_list):
+        #TODO Implement globally registered actions
+        #TODO Capture invalid actions and redirect with flash message
+        return self._actions[action](self, request, id_list)
+
+    def _get_actions_form(self):
+        return ActionForm(actions=self._actions)
+
     # Views
-    @expose('/')
+    @expose('/', methods=('GET', 'POST'))
     def index_view(self):
         """
             List view
         """
+        if request.method == 'POST':
+            id_list = request.form.getlist('id')
+            action = request.form['action']
+
+            result = self._call_action(action, id_list)
+            # Allow action to override, but might just flash a message
+            if result is not None:
+                return result
+
         # Grab parameters from URL
         page, sort_idx, sort_desc, search, filters = self._get_extra_args()
 
@@ -713,7 +732,10 @@ class BaseModelView(BaseView):
                                filter_groups=self._filter_groups,
                                filter_types=self._filter_types,
                                filter_data=filters_data,
-                               active_filters=filters
+                               active_filters=filters,
+
+                               # Actions
+                               actions=self._get_actions_form(),
                                )
 
     @expose('/new/', methods=('GET', 'POST'))

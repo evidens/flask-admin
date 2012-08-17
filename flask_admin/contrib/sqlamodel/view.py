@@ -10,7 +10,7 @@ from flask.ext.admin.babel import gettext
 from flask.ext.admin.form import BaseForm
 from flask.ext.admin.model import BaseModelView
 
-from flask.ext.admin.contrib.sqlamodel import form, filters, tools
+from flask.ext.admin.contrib.sqlamodel import form, filters, tools, actions
 
 
 class ModelView(BaseModelView):
@@ -145,6 +145,8 @@ class ModelView(BaseModelView):
 
         if self._primary_key is None:
             raise Exception('Model %s does not have primary key.' % self.model.__name__)
+
+        self._actions = actions.all_actions
 
         # Configuration
         if not self.list_select_related:

@@ -125,3 +125,18 @@ class DateTimePickerWidget(widgets.TextInput):
     def __call__(self, field, **kwargs):
         kwargs['data-role'] = u'datetimepicker'
         return super(DateTimePickerWidget, self).__call__(field, **kwargs)
+
+
+class ActionForm(wtf.Form):
+    action = fields.SelectField(u'Action')
+
+    def __init__(self, *args, **kwargs):
+        actions = kwargs.pop('actions', None)
+
+        super(ActionForm, self).__init__(*args, **kwargs)
+
+        if actions is not None:
+            self.set_actions(actions)
+
+    def set_actions(self, actions):
+            self.action.choices = [(k, v.label) for k, v in actions.items()]
