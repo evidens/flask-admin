@@ -7,7 +7,14 @@ from flask import flash
 from flask.ext.admin.babel import gettext as _
 
 def primary_key_in(model, id_list):
-    return getattr(model, model.__mapper__.primary_key[0].name).in_(id_list)
+    """
+    Retrieves the primary key for given model.
+
+    Assumes a single primary key but would work if searching by the first key
+    in a multiple-key situation
+    """
+    primary_key = getattr(model, model.__mapper__.primary_key[0].name)
+    return primary_key.in_(list(id_list))
 
 def delete_selected(adminmodel, request, id_list):
     if not (adminmodel.is_accessible() or adminmodel.can_delete):
